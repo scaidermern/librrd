@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+example
+test_librrd
+
+# RRD files
+*.rrd
