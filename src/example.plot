@@ -6,6 +6,7 @@ set xdata time
 # every 20 seconds
 set xtics 20
 set timefmt "%s"
+#set format x "%H:%M:%S"
 
 set grid
 
