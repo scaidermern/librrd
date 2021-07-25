@@ -30,7 +30,13 @@
 *.exe
 *.out
 *.app
+
+# example
 example
+example_cpu.png
+example_mem.png
+
+# test
 test_librrd
 
 # RRD files
