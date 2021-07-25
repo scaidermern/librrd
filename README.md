@@ -30,3 +30,6 @@ entry, every five seconds.
 
 After running the example, you can use the command `gnuplot example.plot` to
 plot the RRAs.
+
+![CPU usage example](images/example_cpu.png)
+![memory usage example](images/example_mem.png)
