@@ -21,12 +21,13 @@ database can grow.
 ## Example
 librrd comes with a small example.
 It can be compiled by running `make example`.
-The example will measure CPU and memory usage each 250 ms for one minute.
-It uses one RRA for each, storing raw data for up to 30 seconds.
+The example will measure CPU and memory usage each second for one minute.
+It uses one RRA for each type, storing raw data (primary data points) for up to
+30 seconds.
 To cover longer periods, several other RRAs are created to store minimum,
 maximum and average values.
 These other RRAs aggregate multiple raw data points into one single archive
-entry, every five seconds.
+entry, every five seconds, resulting in a total of 12 RRA entries.
 
 After running the example, you can use the command `gnuplot example.plot` to
 plot the RRAs.
