@@ -34,3 +34,12 @@ plot the RRAs.
 
 ![CPU usage example](images/example_cpu.png)
 ![memory usage example](images/example_mem.png)
+
+## Debugging
+
+Debug builds and debug log messages can be enabled by passing appropriate flags to `make`:
+`CPPFLAGS="-DDEBUG" CXXFLAGS="-g" make`
+
+## License
+[GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.txt)
+(c) Alexander Heinlein
