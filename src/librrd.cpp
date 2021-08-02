@@ -38,8 +38,9 @@ void rrd_archive::add(std::shared_ptr<rrd_data_point> data) {
         }
     }
 
-    // remove oldest RRA entry if maximum size reached
-    if (archive_.size() >= rows_) {
+    // remove oldest RRA entry if maximum size exceeded
+    if (archive_.size() > rows_) {
+        LOG("reached max rows, removing oldest RRA: archive.");
         archive_.pop_back();
     }
 }

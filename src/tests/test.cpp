@@ -19,21 +19,21 @@ void print(rrd_data const& data) {
     for (auto const& a : data.archives()) {
         assert(a.archive().size() <= a.rows());
         LOG("archive " << a.name() << " with cf " << a.cf_to_str());
-        LOGNL("  v: ");
-        for (auto const& b : a.archive()) {
-            (void)b;
-            LOGNL(b.value() << " ");
-        }
-        LOGNL(std::endl << "  t: ");
+        LOGNL("  t: ");
         for (auto const& b : a.archive()) {
             (void)b;
             LOGNL(b.time().time_since_epoch().count() << " ");
+        }
+        LOGNL(std::endl << "  v: ");
+        for (auto const& b : a.archive()) {
+            (void)b;
+            LOGNL(b.value() << " ");
         }
         LOG("");
     }
 }
 
-/// very simplified floating point conversion, enough for our unit tests
+/// very simplified floating point comparison, enough for our unit tests
 bool almost_equal(rrd_data_point::data_point d1, rrd_data_point::data_point d2) {
     return std::abs(d1 - d2) < 0.01;
 }
@@ -55,6 +55,7 @@ void assert_equal_content(std::vector<rrd_data_point::data_point> const& expecte
 void assert_equal_dump_content(std::string const& expected, rrd_archive const& actual) {
     std::stringstream ss;
     actual.dump(ss);
+    LOG("expected: " << expected << "\nactual: " << ss.str());
     assert(expected == ss.str());
 }
 
@@ -79,7 +80,8 @@ void test_01() {
     const double c = 1.2;
     const rrd_data_point::time_point t;
     for (int i = 0; i < pdps; ++i) {
-        data.add((rrd_data_point::data_point)i * c, t + std::chrono::nanoseconds(i));
+        data.add((rrd_data_point::data_point)i * c, t + rrd_archive::dump_resolution(i));
+
     }
     print(data);
 
@@ -142,7 +144,7 @@ void test_02() {
     const double c = 1.2;
     const rrd_data_point::time_point t;
     for (int i = 0; i < pdps; ++i) {
-        data.add((rrd_data_point::data_point)i * c, t + std::chrono::nanoseconds(i));
+        data.add((rrd_data_point::data_point)i * c, t + rrd_archive::dump_resolution(i));
     }
     print(data);
 
@@ -200,7 +202,7 @@ void test_03() {
 
     const rrd_data_point::time_point t;
     for (int i = 0; i < pdps; ++i) {
-        data.add(i % 10, t + std::chrono::nanoseconds(i));
+        data.add(i % 10, t + rrd_archive::dump_resolution(i));
     }
     print(data);
 

@@ -45,6 +45,9 @@ public:
         MAX
     };
 
+    /// duration resolution for dumping archive content
+    using dump_resolution = std::chrono::milliseconds;
+
     rrd_archive(std::string name, unsigned int steps, unsigned int rows, int cf);
 
     /// add new primary data point (PDPs)
