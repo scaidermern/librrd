@@ -1,14 +1,11 @@
 #include <cassert>
 #include <chrono>
 #include <cmath>
+#include <iostream>
 #include <iterator>
 #include <list>
 #include <sstream>
 #include <vector>
-
-#ifdef DEBUG
-#include <iostream>
-#endif
 
 #define private public
 #include "librrd.h"
@@ -44,7 +41,9 @@ void assert_equal_content(std::vector<rrd_data_point::data_point> const& expecte
     auto it1 = expected.begin();
     auto it2 = actual.archive().begin();
     while (it1 != expected.end() && it2 != actual.archive().end()) {
-        LOG("PDP " << *it1 << " =? " << it2->value());
+        if (!almost_equal(*it1, it2->value())) {
+            LOG("PDP " << *it1 << " =? " << it2->value());
+        }
         assert(almost_equal(*it1, it2->value()));
         ++it1;
         ++it2;
@@ -52,10 +51,14 @@ void assert_equal_content(std::vector<rrd_data_point::data_point> const& expecte
 }
 
 /// compare RRA content (dumped version) against expected content
-void assert_equal_dump_content(std::string const& expected, rrd_archive const& actual) {
+void assert_equal_dump_content(std::string const& expected, rrd_archive const& actual,
+                               rrd_archive::time_format time_fmt = rrd_archive::TIME_SINCE_EPOCH,
+                               rrd_archive::value_format value_fmt = rrd_archive::VAL_DEFAULT) {
     std::stringstream ss;
-    actual.dump(ss);
-    LOG("expected: " << expected << "\nactual: " << ss.str());
+    actual.dump(ss, time_fmt, value_fmt);
+    if (expected != ss.str()) {
+        LOG("expected: " << expected << "\nactual: " << ss.str());
+    }
     assert(expected == ss.str());
 }
 
@@ -64,7 +67,7 @@ void test_01() {
     const int pdps = 2;
     const int steps = 2;
     const int rra_size = 1;
-    rrd_data data("foo", std::list<rrd_archive>{
+    rrd_data data("test_01", std::list<rrd_archive>{
         // archive containing every data point with a maximum size of 2
         rrd_archive("all", 1, pdps, rrd_archive::AVG),
         // archive containing the minimum of every 2 data points with a maximum size of 1
@@ -126,7 +129,7 @@ void test_02() {
     const int pdps = 3;
     const int steps = 2;
     const int rra_size = 1;
-    rrd_data data("foo", std::list<rrd_archive>{
+    rrd_data data("test_02", std::list<rrd_archive>{
         // archive containing every data point with a maximum size of 3
         rrd_archive("all", 1, pdps, rrd_archive::AVG),
         // archive containing the minimum of every 2 data points with a maximum size of 1
@@ -189,7 +192,7 @@ void test_03() {
     const int pdps = 100;
     const int steps = 10;
     const int rra_size = 5;
-    rrd_data data("foo", std::list<rrd_archive>{
+    rrd_data data("test_03", std::list<rrd_archive>{
         // archive containing every data point with a maximum size of 50
         rrd_archive("all", 1, pdps, rrd_archive::AVG),
         // archive containing the minimum of every 10 data points with a maximum size of 5
@@ -238,8 +241,34 @@ void test_03() {
     assert_equal_dump_content("99 4.5\n89 4.5\n79 4.5\n69 4.5\n59 4.5\n", *avg_it);
 }
 
+/// test value formatting options
+void test_04() {
+    const int pdps = 2;
+    rrd_data data("test_04", std::list<rrd_archive>{
+        // archive containing every data point with a maximum size of 2
+        rrd_archive("all", 1, pdps, rrd_archive::AVG),
+    });
+
+    const rrd_data_point::time_point t;
+    for (int i = 0; i < pdps; ++i) {
+        data.add(1.0 / ((rrd_data_point::data_point)(i + 1) * 7000.0), t + rrd_archive::dump_resolution(i));
+    }
+    print(data);
+
+    std::list<rrd_archive>::const_iterator all_it = data.archives().begin();
+    assert(all_it->archive().size() == pdps);
+    assert_equal_dump_content("1 7.14286e-05\n0 0.000142857\n", *all_it);
+    assert_equal_dump_content("1 0.000071\n0 0.000143\n", *all_it,
+                              rrd_archive::TIME_SINCE_EPOCH, rrd_archive::VAL_FIXED);
+    assert_equal_dump_content("1 7.142857e-05\n0 1.428571e-04\n", *all_it,
+                              rrd_archive::TIME_SINCE_EPOCH, rrd_archive::VAL_SCIENTIFIC);
+}
+
 int main() {
     test_01();
     test_02();
     test_03();
+    test_04();
+
+    std::cout << "All tests done." << std::endl;
 }

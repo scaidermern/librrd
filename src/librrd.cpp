@@ -3,6 +3,7 @@
 #include <chrono>
 #include <deque>
 #include <fstream>
+#include <iomanip>
 #include <list>
 #include <memory>
 #include <numeric>
@@ -107,12 +108,43 @@ std::string rrd_archive::cf_to_str() const {
     }
 }
 
-void rrd_archive::dump(std::ostream& out) const {
+void rrd_archive::dump(std::ostream& out, time_format time_fmt,
+                       value_format value_fmt) const {
     for (auto const& data_point : archive_) {
-        out << std::chrono::duration_cast<std::chrono::milliseconds>(data_point.time().time_since_epoch()).count()
-            << " "
-            << data_point.value()
-            << std::endl;
+        // dump time
+        switch (time_fmt) {
+        case TIME_SINCE_EPOCH:
+            out << std::chrono::duration_cast<std::chrono::milliseconds>(data_point.time().time_since_epoch()).count();
+            break;
+        case TIME_FULL_ISO_8601: {
+            std::time_t time = std::chrono::system_clock::to_time_t(data_point.time());
+            struct tm time_tm;
+            localtime_r(&time, &time_tm);
+            out << std::put_time(&time_tm, "%FT%T%z");
+            break;
+        }
+        default:
+            break;
+        }
+
+        out << " ";
+
+        // dump value
+        switch (value_fmt) {
+        case VAL_DEFAULT:
+            out << std::defaultfloat << data_point.value();
+            break;
+        case VAL_FIXED:
+            out << std::fixed << data_point.value() << std::defaultfloat;
+            break;
+        case VAL_SCIENTIFIC:
+            out << std::scientific << data_point.value() << std::defaultfloat;
+            break;
+        default:
+            break;
+        }
+
+        out << std::endl;
     }
 }
 
@@ -129,10 +161,19 @@ void rrd_data::add(rrd_data_point::data_point value, rrd_data_point::time_point 
     }
 }
 
-void rrd_data::dump(std::string const& prefix) const {
+bool rrd_data::dump(std::string const& prefix,
+                    rrd_archive::time_format time_fmt,
+                    rrd_archive::value_format value_fmt) const {
+    bool success = true;
     for (rrd_archive const& rra : archives_) {
         std::string filename(prefix + rra.name() + ".rrd");
         std::ofstream out(filename);
-        rra.dump(out);
+        if (!out) {
+            LOGERR("could not open " << filename << " for writing");
+            success = false;
+            continue;
+        }
+        rra.dump(out, time_fmt, value_fmt);
     }
+    return success;
 }

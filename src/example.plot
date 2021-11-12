@@ -5,8 +5,12 @@ set yrange [0:]
 set xdata time
 # every 20 seconds
 set xtics 20
+
+# time since epoch
 set timefmt "%s"
-#set format x "%H:%M:%S"
+# time in ISO-8601 format
+# make sure to replace "($1/1000)" with "1" in the plot command
+#set timefmt "%Y-%m-%dT%H:%M:%S"
 
 set grid
 

@@ -3,17 +3,22 @@
 
 #include <chrono>
 #include <deque>
+#include <ios>
 #include <list>
 #include <memory>
 #include <string>
 
 #ifdef DEBUG
 #include <iostream>
-#define LOG(msg)   do { std::cout << msg << std::endl; } while (0)
-#define LOGNL(msg) do { std::cout << msg; } while (0)
+#define LOG(msg)      do { std::cout << msg << std::endl; } while (0)
+#define LOGERR(msg)   do { std::cerr << msg << std::endl; } while (0)
+#define LOGNL(msg)    do { std::cout << msg; } while (0)
+#define LOGERRNL(msg) do { std::cerr << msg; } while (0)
 #else
-#define LOG(msg) do {} while (0)
-#define LOGNL(msg) do {} while (0)
+#define LOG(msg)      do {} while (0)
+#define LOGERR(msg)   do {} while (0)
+#define LOGNL(msg)    do {} while (0)
+#define LOGERRNL(msg) do {} while (0)
 #endif
 
 /// single data point
@@ -45,6 +50,21 @@ public:
         MAX
     };
 
+    /// time format for RRA dumps
+    enum time_format {
+        /// time since epoch
+        TIME_SINCE_EPOCH,
+        /// time in ISO 8601 format (e.g. 2009-06-30T18:30:00+02:00)
+        TIME_FULL_ISO_8601
+    };
+
+    /// value format for RRA dumps
+    enum value_format {
+        VAL_DEFAULT,
+        VAL_FIXED,
+        VAL_SCIENTIFIC
+    };
+
     /// duration resolution for dumping archive content
     using dump_resolution = std::chrono::milliseconds;
 
@@ -68,7 +88,8 @@ public:
     std::string cf_to_str() const;
 
     /// dump RRA content to stream
-    void dump(std::ostream& out) const;
+    void dump(std::ostream& out, time_format time_fmt = TIME_SINCE_EPOCH,
+              value_format value_fmt = VAL_DEFAULT) const;
 
 private:
     /// consolidate PDPs to a new RRA entry
@@ -111,7 +132,9 @@ public:
     std::list<rrd_archive> const& archives() const { return archives_; }
 
     /// dump all RRAs to a file
-    void dump(std::string const& prefix = "") const;
+    bool dump(std::string const& prefix = "",
+              rrd_archive::time_format time_fmt = rrd_archive::TIME_SINCE_EPOCH,
+              rrd_archive::value_format value_fmt = rrd_archive::VAL_DEFAULT) const;
 
 private:
     /// name of the data
