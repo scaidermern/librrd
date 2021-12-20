@@ -26,7 +26,7 @@ rrd_archive::rrd_archive(std::string name, unsigned int steps, unsigned int rows
 
 void rrd_archive::add(std::shared_ptr<rrd_data_point> data) {
     if (steps_ == 1) {
-        // shortcut in case we don't want to store each PDP
+        // shortcut in case we want to store each PDP
         // without performing any consolidation at all
         archive_.push_front(*data);
     } else {
