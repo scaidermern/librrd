@@ -92,9 +92,9 @@ void test_01() {
     std::list<rrd_archive>::const_iterator all_it = data.archives().begin();
     assert(all_it->archive().size() == pdps);
     assert_equal_content(std::vector<rrd_data_point::data_point>{
-        (rrd_data_point::data_point)1 * c, (rrd_data_point::data_point)0 * c
+        (rrd_data_point::data_point)0 * c, (rrd_data_point::data_point)1 * c
         }, *all_it);
-    assert_equal_dump_content("1 1.2\n0 0\n", *all_it);
+    assert_equal_dump_content("0 0\n1 1.2\n", *all_it);
 
     // check RRA min
     std::list<rrd_archive>::const_iterator min_it = data.archives().begin();
@@ -155,9 +155,9 @@ void test_02() {
     std::list<rrd_archive>::const_iterator all_it = data.archives().begin();
     assert(all_it->archive().size() == pdps);
     assert_equal_content(std::vector<rrd_data_point::data_point>{
-        (rrd_data_point::data_point)2 * c, (rrd_data_point::data_point)1 * c, (rrd_data_point::data_point)0 * c
+        (rrd_data_point::data_point)0 * c, (rrd_data_point::data_point)1 * c, (rrd_data_point::data_point)2 * c
         }, *all_it);
-    assert_equal_dump_content("2 2.4\n1 1.2\n0 0\n", *all_it);
+    assert_equal_dump_content("0 0\n1 1.2\n2 2.4\n", *all_it);
 
     // check RRA min
     std::list<rrd_archive>::const_iterator min_it = data.archives().begin();
@@ -220,7 +220,7 @@ void test_03() {
     assert_equal_content(std::vector<rrd_data_point::data_point>{
         0.0, 0.0, 0.0, 0.0, 0.0
         }, *min_it);
-    assert_equal_dump_content("90 0\n80 0\n70 0\n60 0\n50 0\n", *min_it);
+    assert_equal_dump_content("50 0\n60 0\n70 0\n80 0\n90 0\n", *min_it);
 
     // check RRA max
     std::list<rrd_archive>::const_iterator max_it = data.archives().begin();
@@ -229,7 +229,7 @@ void test_03() {
     assert_equal_content(std::vector<rrd_data_point::data_point>{
         9.0, 9.0, 9.0, 9.0, 9.0,
         }, *max_it);
-    assert_equal_dump_content("99 9\n89 9\n79 9\n69 9\n59 9\n", *max_it);
+    assert_equal_dump_content("59 9\n69 9\n79 9\n89 9\n99 9\n", *max_it);
 
     // check RRA avg
     std::list<rrd_archive>::const_iterator avg_it = data.archives().begin();
@@ -238,7 +238,7 @@ void test_03() {
     assert_equal_content(std::vector<rrd_data_point::data_point>{
         4.5, 4.5, 4.5, 4.5, 4.5,
         }, *avg_it);
-    assert_equal_dump_content("99 4.5\n89 4.5\n79 4.5\n69 4.5\n59 4.5\n", *avg_it);
+    assert_equal_dump_content("59 4.5\n69 4.5\n79 4.5\n89 4.5\n99 4.5\n", *avg_it);
 }
 
 /// test value formatting options
@@ -257,10 +257,10 @@ void test_04() {
 
     std::list<rrd_archive>::const_iterator all_it = data.archives().begin();
     assert(all_it->archive().size() == pdps);
-    assert_equal_dump_content("1 7.14286e-05\n0 0.000142857\n", *all_it);
-    assert_equal_dump_content("1 0.000071\n0 0.000143\n", *all_it,
+    assert_equal_dump_content("0 0.000142857\n1 7.14286e-05\n", *all_it);
+    assert_equal_dump_content("0 0.000143\n1 0.000071\n", *all_it,
                               rrd_archive::TIME_SINCE_EPOCH, rrd_archive::VAL_FIXED);
-    assert_equal_dump_content("1 7.142857e-05\n0 1.428571e-04\n", *all_it,
+    assert_equal_dump_content("0 1.428571e-04\n1 7.142857e-05\n", *all_it,
                               rrd_archive::TIME_SINCE_EPOCH, rrd_archive::VAL_SCIENTIFIC);
 }
 

@@ -28,9 +28,9 @@ void rrd_archive::add(std::shared_ptr<rrd_data_point> data) {
     if (steps_ == 1) {
         // shortcut in case we want to store each PDP
         // without performing any consolidation at all
-        archive_.push_front(*data);
+        archive_.push_back(*data);
     } else {
-        datapoints_.push_front(data);
+        datapoints_.push_back(data);
 
         // do we need to consolidate our PDPs to an RRA entry?
         if (datapoints_.size() >= steps_) {
@@ -42,7 +42,7 @@ void rrd_archive::add(std::shared_ptr<rrd_data_point> data) {
     // remove oldest RRA entry if maximum size exceeded
     if (archive_.size() > rows_) {
         LOG("reached max rows, removing oldest RRA: archive.");
-        archive_.pop_back();
+        archive_.pop_front();
     }
 }
 
@@ -50,7 +50,7 @@ void rrd_archive::consolidate() {
     // aggregate all PDPs to a new RRA entry
     auto rra = aggregate();
     LOG("aggregated RRA entry for cf " << cf_to_str() << ": " << rra.value());
-    archive_.push_front(rra);
+    archive_.push_back(rra);
 
     // clear list of PDPs after consolidation
     datapoints_.clear();
@@ -60,7 +60,7 @@ rrd_data_point rrd_archive::aggregate() {
     switch(cf_) {
     case AVG:
         // time of aggregated data points will equal the time of the newest data point
-        return rrd_data_point(sum(), datapoints_.front()->time());
+        return rrd_data_point(sum(), datapoints_.back()->time());
     case MIN:
         // time of aggregated data points will equal the time of the minimum data point
         return *min();
@@ -69,7 +69,7 @@ rrd_data_point rrd_archive::aggregate() {
         return *max();
     default:
         assert(false && "unknown consolidation function");
-        return rrd_data_point(0.0, datapoints_.front()->time());
+        return rrd_data_point(0.0, datapoints_.back()->time());
     }
 }
 
